@@ -7,6 +7,7 @@ class App extends React.Component {
   constructor() {
       super();
       this.state= {
+        username: "" ,
         typedIn: "" ,
         messages: []
       }
@@ -22,9 +23,24 @@ class App extends React.Component {
       event.preventDefault();
       this.setState({messages: [...this.state.messages, this.state.typedIn], typedIn: "" })
     }
- 
+    
+    ////////The Formatting Section////////
     render() {
     let messageList=this.state.messages.map(message => (<p>{message}</p>))
+
+    if(this.state.username==="") {
+      return (
+        <div>
+          <form>
+            <FormControl>
+              <InputLabel >Plase enter a username</InputLabel>
+              <Input value={this.state.username} onChange={this.usernameChange}/>
+              <Button disabled={this.state.username===""} variant="contained" color="primary" type="submit" onClick={this.usernameSubmit}>Send </Button>
+            </FormControl>
+          </form>
+        </div>
+      )
+    }
 
       return (
         <div className="App">
