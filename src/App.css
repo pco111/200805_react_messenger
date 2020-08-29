@@ -36,3 +36,39 @@
     transform: rotate(360deg);
   }
 }
+
+.emailInput{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.message_input_form{
+  padding: 20px;
+  position: fixed;
+  bottom: 0;
+  z-index: 1;
+  background-color: whitesmoke;
+  width: 90%;
+  margin: 20px;
+}
+
+.message_input_formControl {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.send_message_button {
+  margin: 10px !important;
+  flex: 0;
+}
+
+.message_input_specific {
+  flex: 1;
+}
+
+.logOut_button {
+  margin: 10px !important;
+  flex: 0;
+}

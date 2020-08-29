@@ -1,62 +1,110 @@
 import React from 'react';
 import './App.css';
 import { Button,FormControl,InputLabel,Input} from '@material-ui/core';
-import MessageDisPlay from './MessageDisplay.js'
+import MessageDisplay from './MessageDisplay.js'
+import firebase from 'firebase'
+import fire from './firebase.js'
+
 
 class App extends React.Component {
   constructor() {
       super();
       this.state= {
-        username: "" ,
+        email: "" ,
+        password: "" ,
         typedIn: "" ,
-        messages: []
+        messages: [] ,
+        loggedInObject: {}
       }
-      this.inputChange=this.inputChange.bind(this)
-      this.submitting=this.submitting.bind(this)
+      this.handleChange=this.handleChange.bind(this)
+      this.sending=this.sending.bind(this)
+      this.loginChange=this.loginChange.bind(this)
+      this.messagesLoader=this.messagesLoader.bind(this)
+      this.authListener=this.authListener.bind(this)
+      this.logOut=this.logOut.bind(this)
     }
 
-    inputChange(event) {
-      this.setState({typedIn:event.target.value})
+    handleChange(event) {
+      this.setState({[event.target.name]:event.target.value})
     }
 
-    submitting(event) {
+    sending(event) {
       event.preventDefault();
-      this.setState({messages: [...this.state.messages, this.state.typedIn], typedIn: "" })
+      fire.firestore().collection('messages').add({message: this.state.typedIn, email: this.state.email, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
+      this.setState({typedIn: ""})
+    }
+
+    loginChange(event) {
+      event.preventDefault();
+      fire.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
+    }
+
+    messagesLoader(dbData) {
+      this.setState({messages: dbData})
+    }
+
+    componentDidMount() {
+      fire.firestore().collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => this.messagesLoader(snapshot.docs.map(doc => doc.data())))
+      this.authListener()
+    }
+
+    componentDidUpdate() {
+      fire.firestore().collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => this.messagesLoader(snapshot.docs.map(doc => doc.data())))
+    }
+
+    authListener() {
+      fire.auth().onAuthStateChanged(userObject => {
+        if(userObject){this.setState({loggedInObject:userObject})} else {this.setState({loggedInObject: null})}
+      })
+    }
+
+    logOut() {
+      fire.auth().signOut();
+      this.setState({loggedInObject: null});
     }
     
+    //////////////////////////////////////
     ////////The Formatting Section////////
+    //////////////////////////////////////
     render() {
-    let messageList=this.state.messages.map(message => (<p>{message}</p>))
+      let messageList=this.state.messages.map(message => <MessageDisplay theEmail={message.email} theMessage={message.message} currentEmail={this.state.email}/>)
 
-    if(this.state.username==="") {
-      return (
-        <div>
-          <form>
-            <FormControl>
-              <InputLabel >Plase enter a username</InputLabel>
-              <Input value={this.state.username} onChange={this.usernameChange}/>
-              <Button disabled={this.state.username===""} variant="contained" color="primary" type="submit" onClick={this.usernameSubmit}>Send </Button>
-            </FormControl>
-          </form>
-        </div>
-      )
-    }
+      if(this.state.loggedInObject==null) {
+        return (
+          <div className="emailInput">
+            <img src={require('./chatAppIcon.png')} alt="chatAppIcon" style={{height: "100px", width:"100px"}}/>
+            <form>
+              <FormControl>
+                <InputLabel >Email</InputLabel>
+                <Input name="email" value={this.state.email} onChange={this.handleChange}/>
+              </FormControl>
+            </form>
+            <form>
+              <FormControl>
+                <InputLabel >Password</InputLabel>
+                <Input name="password" value={this.state.password} onChange={this.handleChange}/>
+              </FormControl>
+            </form>
+            <Button style={{margin: "20px"}} variant="contained" color="primary" type="submit" onClick={this.loginChange}>Log In</Button>
+          </div>
+        )
+      }
 
       return (
         <div className="App">
+          <img src={require('./chatAppIcon.png')} alt="chatAppIcon" style={{height: "100px", width:"100px"}}/>
           <h1>Pco111's Messenger</h1>
-          <form>
-            <FormControl>
-              <InputLabel >Type here...</InputLabel>
-              <Input value={this.state.typedIn} onChange={this.inputChange}/>
-              <Button disabled={!this.state.typedIn} variant="contained" color="primary" type="submit" onClick={this.submitting}>Send </Button>
+          <form className="message_input_form">
+            <FormControl className="message_input_formControl">
+              <Input className="message_input_specific" name="typedIn" placeholder={'Type here...'} value={this.state.typedIn} onChange={this.handleChange}/>
+              <Button className="send_message_button" disabled={!this.state.typedIn} variant="contained" color="primary" type="submit" onClick={this.sending}>Send</Button>
+              <Button className="logOut_button" variant="contained" color="primary" type="submit" onClick={this.logOut}>Log Out</Button>
             </FormControl>
           </form>
           {messageList}
         </div>
       )
     }
-  
 }
 
 export default App

@@ -1,0 +1,19 @@
+.message_guest {
+    padding: 10px;
+    margin: 10px;
+    width: fit-content;
+}
+
+.message_current {
+    margin-left: auto;
+    color: white;
+    text-align: left !important;
+}
+
+.message_card_guest_user {
+    background-color: grey !important;
+}
+
+.message_card_current_user {
+    background-color: greenyellow !important;
+}
